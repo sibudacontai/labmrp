@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>CareOn Medical Clinic — Lab Test Billing</title>
+<style>
+  :root{
+    --bg:#E6F3EE;
+    --paper:#FFFFFF;
+    --ink:#0B4D3D;
+    --teal:#0F9D72;
+    --teal-dark:#0C7A59;
+    --stamp:#C0392B;
+    --line:#CFE7DC;
+    --muted:#4C7B6B;
+    --muted-2:#87ADA0;
+    --shadow: 0 1px 2px rgba(18,36,32,0.06), 0 8px 24px rgba(18,36,32,0.06);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:Arial,Helvetica,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+  }
+  #app{
+    width:100%;
+    max-width:480px;
+    min-height:100vh;
+    background:var(--bg);
+    display:flex;
+    flex-direction:column;
+    position:relative;
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    padding:22px 20px 14px;
+    position:sticky;
+    top:0;
+    background:var(--bg);
+    z-index:20;
+  }
+  .eyebrow{
+    font-family:Arial,Helvetica,sans-serif;
+    font-size:11px;
+    letter-spacing:0.14em;
+    color:var(--teal-dark);
+    text-transform:uppercase;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:7px;height:7px;border-radius:50%;
+    background:var(--stamp);
+    display:inline-block;
+  }
+  h1{
+    font-family:Arial,Helvetica,sans-serif;
+    font-weight:bold;
+    font-size:26px;
+    letter-spacing:-0.01em;
+    margin:4px 0 0;
+    color:var(--ink);
+  }
+  h1 .hl-red{
+    color:var(--stamp);
+  }
+  .sub{
+    font-size:13px;
+    color:var(--muted);
+    margin-top:2px;
+  }
+
+  /* ---------- Clinic contact line ---------- */
+  .clinic-contact{
+    margin:8px 0 0;
+    text-align:center;
+    font-family:Arial,Helvetica,sans-serif;
+    font-weight:bold;
+    font-size:13px;
+    letter-spacing:0.03em;
+    color:#fff;
+    background:var(--teal-dark);
+    padding:7px 10px;
+    border-radius:10px;
+  }
+
+  /* ---------- Patient Info ---------- */
+  .patient-card{
+    margin:0 20px 6px;
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:14px;
+    box-shadow:var(--shadow);
+    padding:14px 16px;
+  }
+  .patient-row{
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+    padding:6px 0;
+    border-bottom:1px dashed var(--line);
+  }
+  .patient-row:last-child{border-bottom:none;}
+  .patient-row-split{gap:10px;}
+  .p-label{
+    font-family:Arial,Helvetica,sans-serif;
+    font-size:12.5px;
+    font-weight:bold;
+    color:var(--muted);
+    white-space:nowrap;
+    flex:none;
+  }
+  .p-input{
+    border:none;
+    outline:none;
+    background:transparent;
+    font-family:Arial,Helvetica,sans-serif;
+    font-size:14px;
+    color:var(--ink);
+    padding:2px 4px;
+  }
+  .p-input-wide{flex:1;}
+  .p-input-sm{width:52px; flex:none;}
+
+  /* ---------- Search ---------- */
+  .search-wrap{
+    padding:14px 20px 6px;
+    position:sticky;
+    top:88px;
+    background:var(--bg);
+    z-index:19;
+  }
+  .search-box{
+    display:flex;
+    align-items:center;
+    background:var(--paper);
+    border:1.5px solid var(--line);
+    border-radius:14px;
+    padding:0 14px;
+    box-shadow:var(--shadow);
+    transition:border-color .15s ease;
+  }
+  .search-box:focus-within{
+    border-color:var(--teal);
+  }
+  .sync-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:6px 2px 0;
+    font-size:11.5px;
+    color:var(--muted);
+    font-family:Arial,Helvetica,sans-serif;
+  }
+  #syncBtn{
+    border:none;
+    background:none;
+    color:var(--teal-dark);
+    font-weight:bold;
+    font-size:12px;
+    font-family:Arial,Helvetica,sans-serif;
+    padding:2px 4px;
+    cursor:pointer;
+  }
+  .search-box svg{flex:none;color:var(--muted-2);}
+  #searchInput{
+    flex:1;
+    border:none;
+    outline:none;
+    background:transparent;
+    font-family:Arial,Helvetica,sans-serif;
+    font-size:16px;
+    font-weight:500;
+    padding:13px 10px;
+    color:var(--ink);
+  }
+  #searchInput::placeholder{color:var(--muted-2); font-weight:400;}
+  #clearSearch{
+    border:none;background:none;color:var(--muted-2);
+    font-size:18px; cursor:pointer; padding:4px 2px; display:none;
+  }
+
+  /* ---------- Results ---------- */
+  .results{
+    padding:8px 20px 4px;
+    max-height:38vh;
+    overflow-y:auto;
+  }
+  .result-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:11px 14px;
+    margin-bottom:8px;
+    cursor:pointer;
+    transition:transform .1s ease, border-color .12s ease;
+  }
+  .result-row:active{ transform:scale(0.98); border-color:var(--teal); }
+  .result-name{
+    font-size:14px;
+    font-weight:600;
+    line-height:1.3;
+  }
+  .result-amt{
+    font-family:Arial,Helvetica,sans-serif;
+    font-weight:700;
+    font-size:14px;
+    color:var(--teal-dark);
+    white-space:nowrap;
+    flex:none;
+  }
+  .result-add{
+    flex:none;
+    width:26px;height:26px;
+    border-radius:50%;
+    background:var(--teal);
+    color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:16px;
+    line-height:1;
+  }
+  .hint-row, .empty-row{
+    text-align:center;
+    color:var(--muted-2);
+    font-size:13px;
+    padding:16px 10px;
+  }
+
+  /* ---------- Divider label ---------- */
+  .section-label{
+    padding:14px 20px 6px;
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+  }
+  .section-label span.tag{
+    font-family:Arial,Helvetica,sans-serif;
+    font-size:11px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+  #itemCount{
+    font-family:Arial,Helvetica,sans-serif;
+    font-size:11px;
+    color:var(--teal-dark);
+    background:rgba(14,110,92,0.1);
+    padding:2px 8px;
+    border-radius:20px;
+  }
+
+  /* ---------- Bill card (receipt) ---------- */
+  .bill-wrap{
+    padding:0 20px;
+    flex:1;
+  }
+  .bill-card{
+    background:var(--paper);
+    border-radius:2px 2px 14px 14px;
+    box-shadow:var(--shadow);
+    position:relative;
+    padding-top:14px;
+    margin-bottom:12px;
+  }
+  .zigzag{
+    position:absolute;
+    top:-1px; left:0; right:0;
+    height:10px;
+    background:
+      linear-gradient(135deg, var(--paper) 50%, transparent 50%) 0 0,
+      linear-gradient(-135deg, var(--paper) 50%, transparent 50%) 0 0;
+    background-size:14px 14px;
+    background-repeat:repeat-x;
+    filter:drop-shadow(0 -1px 1px rgba(18,36,32,0.05));
+  }
+  .bill-items{
+    padding:4px 16px 6px;
+    max-height:34vh;
+    overflow-y:auto;
+  }
+  .bill-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 0;
+    border-bottom:1px dashed var(--line);
+  }
+  .bill-item:last-child{border-bottom:none;}
+  .bill-sl{
+    font-family:Arial,Helvetica,sans-serif;
+    font-size:12px;
+    color:var(--muted-2);
+    width:20px;
+    flex:none;
+  }
+  .bill-name{
+    flex:1;
+    font-size:13.5px;
+    font-weight:600;
+    line-height:1.3;
+  }
+  .bill-amt{
+    font-family:Arial,Helvetica,sans-serif;
+    font-weight:700;
+    font-size:13.5px;
+    flex:none;
+  }
+  .bill-remove{
+    flex:none;
+    border:none;background:none;
+    color:var(--stamp);
+    font-size:17px;
+    cursor:pointer;
+    padding:2px 0 2px 4px;
+    opacity:0.75;
+  }
+  .bill-empty{
+    padding:26px 10px 30px;
+    text-align:center;
+    color:var(--muted-2);
+    font-size:13px;
+    line-height:1.5;
+  }
+
+  /* ---------- Total footer ---------- */
+  .total-bar{
+    position:sticky;
+    bottom:0;
+    background:var(--teal-dark);
+    color:#fff;
+    padding:14px 20px calc(14px + env(safe-area-inset-bottom));
+    border-radius:16px 16px 0 0;
+    box-shadow:0 -6px 20px rgba(18,36,32,0.18);
+    margin-top:auto;
+  }
+  .total-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:4px 0;
+  }
+  .total-row-net{
+    margin-top:4px;
+    padding-top:10px;
+    border-top:1px solid rgba(255,255,255,0.2);
+  }
+  .t-label{
+    font-family:Arial,Helvetica,sans-serif;
+    font-size:12px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:#A9E0CB;
+  }
+  .total-row-net .t-label{
+    font-size:13px;
+    font-weight:bold;
+    color:#fff;
+  }
+  .t-value{
+    font-family:Arial,Helvetica,sans-serif;
+    font-weight:bold;
+    font-size:16px;
+    letter-spacing:-0.01em;
+  }
+  .t-net{
+    font-size:24px;
+  }
+  .t-input-wrap{
+    display:flex;
+    align-items:center;
+    gap:4px;
+  }
+  #discountInput{
+    width:80px;
+    border:none;
+    border-bottom:1.5px solid rgba(255,255,255,0.4);
+    background:transparent;
+    color:#fff;
+    font-family:Arial,Helvetica,sans-serif;
+    font-weight:bold;
+    font-size:16px;
+    padding:2px 4px;
+    outline:none;
+    text-align:right;
+  }
+  #discountInput:focus{border-bottom-color:#fff;}
+  #clearAll{
+    background:rgba(255,255,255,0.12);
+    border:1px solid rgba(255,255,255,0.22);
+    color:#fff;
+    font-family:Arial,Helvetica,sans-serif;
+    font-size:13px;
+    font-weight:600;
+    padding:8px 14px;
+    border-radius:10px;
+    cursor:pointer;
+    margin-top:10px;
+    width:100%;
+  }
+  #clearAll:active{background:rgba(255,255,255,0.2);}
+
+  ::-webkit-scrollbar{width:5px;}
+  ::-webkit-scrollbar-thumb{background:var(--line);border-radius:10px;}
+
+  @media (prefers-reduced-motion:reduce){
+    .result-row{transition:none;}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <div class="eyebrow">Lab MRP · Billing</div>
+    <h1>Care<span class="hl-red">On</span> Medical Clinic</h1>
+    <div class="clinic-contact">CONTAI :: MOB. - 9933335131</div>
+  </header>
+
+  <div class="search-wrap">
+    <div class="search-box">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <input id="searchInput" type="text" placeholder="Search test name…" autocomplete="off" />
+      <button id="clearSearch" aria-label="Clear search">✕</button>
+    </div>
+    <div class="sync-row">
+      <span id="syncStatus">—</span>
+      <button id="syncBtn" type="button">🔄 Sync</button>
+    </div>
+  </div>
+
+  <div class="results" id="results"></div>
+
+  <div class="section-label">
+    <span class="tag">Bill</span>
+    <span id="itemCount">0 items</span>
+  </div>
+
+  <div class="bill-wrap">
+    <div class="bill-card">
+      <div class="zigzag"></div>
+      <div class="bill-items" id="billItems">
+        <div class="bill-empty" id="billEmpty">No tests added yet.<br>Search above and tap a result to add it to the bill.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="total-bar">
+    <div class="total-row">
+      <span class="t-label">Total Amount</span>
+      <span class="t-value" id="totalAmt">Rs. 0</span>
+    </div>
+    <button id="clearAll">Clear All</button>
+  </div>
+
+</div>
+
+<script>
+let TESTS = [{"sl":"1","name":"ANTI HCV","amount":700.0},{"sl":"2","name":"17 OH PROGESTERON","amount":700.0},{"sl":"3","name":"17 OH PROGESTERON (PREGNANT)","amount":700.0},{"sl":"4","name":"24 HOUR. URINE FOR MICRO ALBUMIN","amount":500.0},{"sl":"5","name":"24 HOURS CHLORIDE","amount":300.0},{"sl":"6","name":"24 HOURS MICRO ALBUMINURIA","amount":450.0},{"sl":"7","name":"24 HOURS MICRO PROTEIN","amount":300.0},{"sl":"8","name":"24 HOURS POTASSIUM","amount":250.0},{"sl":"9","name":"24 HOURS PROTEIN","amount":250.0},{"sl":"10","name":"24 HOURS PROTEIN URIA","amount":300.0},{"sl":"11","name":"24 HOURS SODIUM","amount":250.0},{"sl":"12","name":"24 HOURS UREA","amount":150.0},{"sl":"13","name":"24 HOURS URINE PHOSPHATE","amount":250.0},{"sl":"14","name":"24 HRS URINE FOR POTASSIUM","amount":250.0},{"sl":"15","name":"24 HRS. URINARY 17 KETOSTEROID","amount":800.0},{"sl":"16","name":"24 HRS. URINARY 17 OXYSTEROID","amount":800.0},{"sl":"17","name":"24 HRS. URINE BICARBONATE","amount":300.0},{"sl":"18","name":"24 HRS. URINE FOR CALCIUM","amount":250.0},{"sl":"19","name":"24 HRS. URINE FOR CREATININE","amount":450.0},{"sl":"20","name":"24 HRS. URINE FOR CREATININE CLEARANCE TEST (CCT)","amount":350.0},{"sl":"21","name":"24 HRS. URINE FOR NOR METANEPHRINE","amount":3500.0},{"sl":"22","name":"24 HRS. URINE FOR URIC ACID","amount":250.0},{"sl":"23","name":"24 HRS. URINEE FOR COBALT","amount":1800.0},{"sl":"24","name":"A.S.O. (ANTI STREPTOLYSIN-O)","amount":400.0},{"sl":"25","name":"ABCESS FLUID A.F.B. FOR CULTURE","amount":500.0},{"sl":"26","name":"ABCESS FLUID FOR CULTURE","amount":700.0},{"sl":"27","name":"ABG PROFILE","amount":1500.0},{"sl":"28","name":"ABNORMAL CELL / PREMATURE CELL","amount":200.0},{"sl":"29","name":"ABPA PANEL","amount":3500.0},{"sl":"30","name":"ABSOLUTE BASOPHIL COUNT","amount":200.0},{"sl":"31","name":"ABSOLUTE EOSINOPHIL COUNT","amount":200.0},{"sl":"32","name":"ABSOLUTE LYMPHOCYTE COUNT","amount":200.0},{"sl":"33","name":"ABSOLUTE MONOCYTE COUNT","amount":200.0},{"sl":"34","name":"ABSOLUTE NEUTROPHIL COUNT","amount":200.0},{"sl":"35","name":"ACE (ANGIOTENSIN CONVERTING ENZYME)","amount":1600.0},{"sl":"36","name":"ACHR (ACETYLE CHOLINE RECEPTOR ANTIBODIES)","amount":4300.0},{"sl":"37","name":"ACID PHOSPHATASE","amount":300.0},{"sl":"38","name":"ACID PHOSPHATASE WITH PROSTATIC FUNCTION","amount":700.0},{"sl":"39","name":"ACR (24 HOURS)","amount":650.0},{"sl":"40","name":"ACR (SPOT URINE FOR ACR)","amount":650.0},{"sl":"41","name":"ACTH (ADRENO CORTICOTROPIC HORMONE)","amount":1500.0},{"sl":"42","name":"ADA (ADENOSINE DEAMINASE) FOR BLOOD","amount":700.0},{"sl":"43","name":"ADA (ADENOSINE DEAMINASE) FOR FLUID","amount":700.0},{"sl":"44","name":"ADRENALIN (EPINEPHRINE) BLOOD","amount":2800.0},{"sl":"45","name":"ADRENALIN (EPINEPHRINE)(URINE)","amount":1800.0},{"sl":"46","name":"AFB (ALL MATERIALS)","amount":250.0},{"sl":"47","name":"AFB BY Z-N STAIN","amount":250.0},{"sl":"48","name":"AFB CULTURE","amount":500.0},{"sl":"49","name":"AFB FLUORESCENT MICROSCOPY","amount":500.0},{"sl":"50","name":"AIR CULTURE","amount":600.0},{"sl":"51","name":"ALBUMIN","amount":200.0},{"sl":"52","name":"ALBUMIN (URINE) QUALITATIVE","amount":200.0},{"sl":"53","name":"ALCOHOL","amount":3000.0},{"sl":"54","name":"ALDEHYDE","amount":200.0},{"sl":"55","name":"ALDOLASE","amount":500.0},{"sl":"56","name":"ALDOSTERON RENIN RATIO","amount":5800.0},{"sl":"57","name":"ALDOSTERONE","amount":1800.0},{"sl":"58","name":"ALKALINE PHOSPHATE (ALKP)","amount":250.0},{"sl":"59","name":"ALLERGY - BLOOD PROFILE","amount":7000.0},{"sl":"60","name":"ALLERGY - CLIA","amount":2500.0},{"sl":"61","name":"ALLERGY - DRUG","amount":2700.0},{"sl":"62","name":"ALLERGY ASTHAMA / RHINITIS PANEL (IMMUNOCAP)","amount":13500.0},{"sl":"63","name":"ALLERGY COMPREHENSIVE PANEL (IMMUNOCAP)","amount":12500.0},{"sl":"64","name":"ALLERGY ECZEMA COMPREHENSIVE PANEL \n (IMMUNOCAP)","amount":12000.0},{"sl":"65","name":"ALLERGY-DUST PANEL (IMMUNOCAP)","amount":12500.0},{"sl":"66","name":"ALPHA FETO PROTEIN (AFP)","amount":700.0},{"sl":"67","name":"ALPHA-1-ANTITRYPSIN","amount":1600.0},{"sl":"68","name":"AMH (ANTI MULLERIAN HORMONE)","amount":1900.0},{"sl":"69","name":"AMINO ACID (QUANTITATIVE)","amount":19000.0},{"sl":"70","name":"AMINO ACID DISORDER","amount":2000.0},{"sl":"71","name":"AMINO ACID QUANTATIVE","amount":19000.0},{"sl":"72","name":"AMLODARONE","amount":5500.0},{"sl":"73","name":"AMMONIA","amount":500.0},{"sl":"74","name":"AMOEBIASIS ANTIBODIES (IGG)","amount":1200.0},{"sl":"75","name":"AMPHETAMINE","amount":1500.0},{"sl":"76","name":"AMYLASE","amount":400.0},{"sl":"77","name":"ANA / ANF IFA","amount":700.0},{"sl":"78","name":"ANA PROFILE","amount":3400.0},{"sl":"79","name":"ANDROGENS (TESTOSTERONE+DHEASO4)","amount":1250.0},{"sl":"80","name":"ANDROLOGY PANEL","amount":2000.0},{"sl":"82","name":"ANDROSTENEDIONE(A4)","amount":1250.0},{"sl":"83","name":"ANEMIA PROFILE","amount":2500.0},{"sl":"84","name":"ANTI HCV","amount":700.0},{"sl":"85","name":"ANTI CARDIOLIPIN IGA","amount":700.0},{"sl":"86","name":"ANTI CARDIOLIPIN IGG","amount":700.0},{"sl":"87","name":"ANTI CARDIOLIPIN IGM","amount":700.0},{"sl":"88","name":"ANTI DNASE B","amount":2800.0},{"sl":"89","name":"ANTI DS DNA ANTIBODY","amount":750.0},{"sl":"90","name":"ANTI HAEMOPHILIC FACTOR","amount":9500.0},{"sl":"91","name":"ANTI HBE","amount":700.0},{"sl":"92","name":"ANTI MICROSOMAL ANTIBODY/AMA-(TPO)","amount":800.0},{"sl":"93","name":"ANTI MOG","amount":9000.0},{"sl":"94","name":"ANTI NETAL PANEL","amount":1700.0},{"sl":"95","name":"ANTI NMO ANTIBODY (AQUAPORIN 4)","amount":7500.0},{"sl":"96","name":"ANTI NMO ANTIBODY (AQUAPORIN 4)C.S.F","amount":6000.0},{"sl":"97","name":"ANTI PHOSPHOLIPIN (IGG + IGM + IGA)","amount":1800.0},{"sl":"98","name":"ANTI PHOSPHOLIPIN IGG","amount":700.0},{"sl":"99","name":"ANTI PHOSPHOLIPIN IGA","amount":700.0},{"sl":"100","name":"ANTI PHOSPHOLIPIN IGM","amount":700.0},{"sl":"101","name":"ANTI SMOOTH MUSCLE ANTIBODY (ASMA)","amount":1600.0},{"sl":"102","name":"ANTI SPERM ANTIBODY","amount":2500.0},{"sl":"103","name":"ANTI SS DNA ANTIBODY","amount":900.0},{"sl":"104","name":"ANTI THYROGLOBULIN (ANTI-TG) (THYROID)","amount":800.0},{"sl":"105","name":"ANTI TPO","amount":800.0},{"sl":"106","name":"ANTI TTG - IGA","amount":1300.0},{"sl":"107","name":"ANTI TTG - IGG","amount":1300.0},{"sl":"108","name":"ANTI-HBC","amount":700.0},{"sl":"109","name":"ANTI-JO-1","amount":1000.0},{"sl":"110","name":"ANTI-SCL-70","amount":2000.0},{"sl":"111","name":"APO LIPO PROTINE(A)","amount":700.0},{"sl":"112","name":"APO LIPO PROTINE(B)","amount":700.0},{"sl":"113","name":"APTT / PTT","amount":400.0},{"sl":"114","name":"ARSENIC","amount":5600.0},{"sl":"115","name":"ARTHRITIS PROFILE - 1","amount":2600.0},{"sl":"116","name":"ARTHRITIS PROFILE - 2","amount":5000.0},{"sl":"117","name":"ASCA-IGA","amount":2300.0},{"sl":"118","name":"ASCA-IGG","amount":2300.0},{"sl":"119","name":"ASPERGILLOSIS ANTIBODY-IGE","amount":2200.0},{"sl":"120","name":"ASPERGILLOSIS ANTIBODY-IGG","amount":2200.0},{"sl":"121","name":"ASPERGILLOSIS ANTIBODY-IGM","amount":2200.0},{"sl":"122","name":"ASPIRATION FLUID A.F.B. CULTURE","amount":500.0},{"sl":"123","name":"ASPIRATION FLUID FOR CULTURE","amount":700.0},{"sl":"124","name":"BACTEC AFB CULTURE","amount":1000.0},{"sl":"125","name":"BANDS CELL","amount":150.0},{"sl":"126","name":"BARBITURATES","amount":1500.0},{"sl":"127","name":"BASIC LYMPHOMA PANEL (IHC MARKER)","amount":10000.0},{"sl":"128","name":"BCR ABL FISH","amount":6000.0},{"sl":"129","name":"BCR ABL RT PCR (QUANTITATIVE)","amount":8000.0},{"sl":"130","name":"BCR ABL RT PCR (QUALITATIVE)","amount":5500.0},{"sl":"131","name":"BEN JONES PROTEIN (URINE)","amount":300.0},{"sl":"132","name":"BENZODIAZEPINES","amount":1500.0},{"sl":"133","name":"BETA - 2 (GLYCOPROTEIN 1)","amount":3000.0},{"sl":"134","name":"BETA - HYDROXYBUTYRATE","amount":1700.0},{"sl":"135","name":"BETA 2 GLYCOPROTEIN IGG","amount":1500.0},{"sl":"136","name":"BETA 2 GLYCOPROTEIN IGM","amount":1500.0},{"sl":"137","name":"BETA HCG (QUANTITATIVE)","amount":800.0},{"sl":"138","name":"BETA HCG (URINE)","amount":800.0},{"sl":"139","name":"BETA-2 MICROGLOBULIN (SERUM)","amount":1800.0},{"sl":"140","name":"BETA-2 MICROGLOBULIN (URINE)","amount":1800.0},{"sl":"141","name":"BETA-D GLUCAN","amount":7000.0},{"sl":"142","name":"BICARBONATE (HCO3)","amount":300.0},{"sl":"143","name":"BILE ACID","amount":1600.0},{"sl":"144","name":"BIOPSY + AFB","amount":400.0},{"sl":"145","name":"BIOPSY REVIEW (PER BLOCK)","amount":400.0},{"sl":"146","name":"BIOT PROFILE","amount":3800.0},{"sl":"147","name":"BISMUTH (BLOOD)","amount":2000.0},{"sl":"148","name":"BISMUTH (URINE)","amount":2000.0},{"sl":"149","name":"BK VIRUS (QUANTITATIVE)","amount":6800.0},{"sl":"150","name":"BLEEDING TIME","amount":200.0},{"sl":"151","name":"BLOOD (AEROBIC) CULTURE","amount":800.0},{"sl":"152","name":"BLOOD CULTURE BACTEC AEROBIC","amount":1100.0},{"sl":"153","name":"BLOOD CULTURE BACTEC ANAEROBIC","amount":1100.0},{"sl":"154","name":"BLOOD GROUP & RH FACTOR","amount":200.0},{"sl":"155","name":"BNP","amount":2200.0},{"sl":"156","name":"BOH PROFILE","amount":7800.0},{"sl":"157","name":"BONE MARROW ASPIRATION & CYTOLOGY","amount":1200.0},{"sl":"158","name":"BRUCELLA DNA PCR (QUALITATIVE)","amount":4500.0},{"sl":"159","name":"BRUCELLA IGG","amount":1800.0},{"sl":"160","name":"BRUCELLA IGM","amount":1800.0},{"sl":"161","name":"BT CT","amount":200.0},{"sl":"162","name":"BUN (BLOOD UREA NITROGEN)","amount":200.0},{"sl":"163","name":"C 1 ESTERASE INHIBITOR","amount":4800.0},{"sl":"164","name":"C 3 (COMPLIMENT 3)","amount":1000.0},{"sl":"165","name":"C 4 (COMPLIMENT 4)","amount":1000.0},{"sl":"166","name":"C.P.K.","amount":400.0},{"sl":"167","name":"C.P.K. - BB","amount":300.0},{"sl":"168","name":"C.P.K. MB","amount":400.0},{"sl":"169","name":"C.P.K. MM","amount":1000.0},{"sl":"170","name":"CA-125 (OVERIAN ANTIGEN)","amount":800.0},{"sl":"171","name":"CA-15.3 (BREAST ANTIGEN)","amount":800.0},{"sl":"172","name":"CA-19.9 (GASTROINTESTINAL ANTIGEN)","amount":1000.0},{"sl":"173","name":"CA-72.4","amount":2000.0},{"sl":"174","name":"CADMIUM (BLOOD)","amount":2000.0},{"sl":"175","name":"CADMIUM (URINE)","amount":2000.0},{"sl":"177","name":"CALCITONIN","amount":2000.0},{"sl":"178","name":"CALCIUM","amount":300.0},{"sl":"179","name":"CALCIUM PHOSPHATE RATIO","amount":350.0},{"sl":"180","name":"CALCIUM URINE","amount":250.0},{"sl":"181","name":"CALR","amount":4500.0},{"sl":"182","name":"C-ANCA","amount":1300.0},{"sl":"183","name":"CANNABIS / CANABINOIDS (THC) / MARIJUANA","amount":1500.0},{"sl":"184","name":"CARBAMAZEPINE","amount":700.0},{"sl":"185","name":"CARDIAC PROFILE","amount":1700.0},{"sl":"186","name":"CATECHOLAMINE (ADRENALIN + NOR ADRENALIN)URINE","amount":3300.0},{"sl":"187","name":"CATECHOLAMINE (ADRENALIN+NOR ADRENALIN)BLOOD","amount":3500.0},{"sl":"188","name":"CATECHOLAMINE (PLASMA)","amount":3500.0},{"sl":"189","name":"CATECHOLAMINE (URINE)","amount":3300.0},{"sl":"190","name":"CATHETER TUBE FOR CULTURE","amount":700.0},{"sl":"191","name":"CCP ANTIBODY","amount":1100.0},{"sl":"192","name":"CD 117","amount":2500.0},{"sl":"193","name":"CD 4","amount":1800.0},{"sl":"194","name":"CD 8","amount":2900.0},{"sl":"195","name":"CD 99 (IHC MARKER)","amount":2800.0},{"sl":"196","name":"CD10 (FLOW CYTOMETRY)","amount":2300.0},{"sl":"197","name":"CD10 (IHC MARKER)","amount":3800.0},{"sl":"198","name":"CD19","amount":2500.0},{"sl":"199","name":"CD20","amount":2500.0},{"sl":"200","name":"CD3","amount":1800.0},{"sl":"201","name":"CD3, CD4 & CD8 COUNTS","amount":2900.0},{"sl":"202","name":"CEA","amount":600.0},{"sl":"203","name":"CELL TYPE & CELL COUNT","amount":300.0},{"sl":"204","name":"CENTROMERE ANTIBODY","amount":1400.0},{"sl":"205","name":"CERULOPLASMIN (COPPER OXIDASE)","amount":900.0},{"sl":"206","name":"CH-50","amount":1000.0},{"sl":"207","name":"CHIKUN GUNYA","amount":800.0},{"sl":"208","name":"CHIKUN GUNYA (IGM) BY ELISA","amount":800.0},{"sl":"209","name":"CHIKUNGUNYA (IGG) BY ELISA","amount":800.0},{"sl":"210","name":"CHLAMYDIA ANTIGEN IGA","amount":800.0},{"sl":"211","name":"CHLAMYDIA ANTIGEN IGG","amount":800.0},{"sl":"212","name":"CHLAMYDIA ANTIGEN IGM","amount":800.0},{"sl":"213","name":"CHLORIDE","amount":300.0},{"sl":"214","name":"CHOLESTEROL TOTAL","amount":250.0},{"sl":"215","name":"CHOLESTEROL, LDL/HDL RATIO","amount":700.0},{"sl":"216","name":"CHOLINESTERASE (PSEUDO)","amount":1200.0},{"sl":"217","name":"CHROMIUM (BLOOD)","amount":4300.0},{"sl":"218","name":"CHROMOGRANIN A","amount":7400.0},{"sl":"219","name":"CHROMOSOMAL ANALYSIS (TISSU)","amount":6500.0},{"sl":"220","name":"CHROMOSOMAL ANALYSIS BLOOD","amount":3000.0},{"sl":"221","name":"CHROMOSOMAL ANALYSIS BONE MARROW FLUID","amount":3300.0},{"sl":"222","name":"CHYLOMICRONS","amount":1100.0},{"sl":"223","name":"CITRATE(URINE)","amount":1300.0},{"sl":"224","name":"CLOSTRIDIUM DIFFICILE TOXIN A&B","amount":3300.0},{"sl":"225","name":"CLOTTING TIME","amount":200.0},{"sl":"226","name":"CLOZAPINE","amount":5500.0},{"sl":"227","name":"CMV DNA PCR (QUALITATIVE)","amount":5000.0},{"sl":"228","name":"CMV DNA PCR (QUANTITATIVE)","amount":7000.0},{"sl":"229","name":"CMV IGG","amount":550.0},{"sl":"230","name":"CMV IGM","amount":550.0},{"sl":"231","name":"COAGULATION PROFILE","amount":2300.0},{"sl":"232","name":"COBALT (BLOOD)","amount":1800.0},{"sl":"233","name":"COCCAINE","amount":1500.0},{"sl":"234","name":"COMPLEMENT FIXATION TEST (CFT)","amount":800.0},{"sl":"235","name":"COMPLETE METABOLIC PROFILE (CMP)","amount":2300.0},{"sl":"236","name":"COMPLETE HAEMOGRAM (CBC)","amount":300.0},{"sl":"237","name":"COOMB (DIRECT)","amount":500.0},{"sl":"238","name":"COOMB(INDIRECT)","amount":500.0},{"sl":"239","name":"COPPER (24 HRS. URINE)","amount":1600.0},{"sl":"240","name":"COPPER (SERUM)","amount":900.0},{"sl":"241","name":"COPPER (SPOT URINE)","amount":900.0},{"sl":"242","name":"CORTICOSTEROIDS (17 HYDROXY)","amount":4500.0},{"sl":"243","name":"CORTISOL URINE","amount":700.0},{"sl":"244","name":"CORTISOL(EVENING)","amount":700.0},{"sl":"245","name":"CORTISOL(MORNING)","amount":700.0},{"sl":"246","name":"COVID 19 ANTIGEN TEST","amount":800.0},{"sl":"247","name":"COVID ANTIBODY TEST","amount":800.0},{"sl":"248","name":"COVID-19 MONITORING PROFILE","amount":8000.0},{"sl":"249","name":"C-PEPTIDE (P.P) LEVEL","amount":800.0},{"sl":"250","name":"C-PEPTIDE LEVEL","amount":800.0},{"sl":"251","name":"CREATININE","amount":200.0},{"sl":"252","name":"CREATININE CLEARENCE TEST (SERUM CCT)","amount":350.0},{"sl":"253","name":"CRP","amount":400.0},{"sl":"254","name":"CRYOGLOBULIN","amount":900.0},{"sl":"255","name":"CRYPTOCOCCUS ANTIGEN (FLUID)","amount":1300.0},{"sl":"256","name":"CRYPTOCOCCUS ANTIGEN (SERUM)","amount":1300.0},{"sl":"257","name":"CRYPTOSPORDIUM (STOOL)","amount":300.0},{"sl":"258","name":"CSF FLUID FOR GRAM STAIN","amount":300.0},{"sl":"259","name":"CSF FLUID FOR PROTEIN","amount":300.0},{"sl":"260","name":"CSF FLUID FOR SUGAR","amount":100.0},{"sl":"261","name":"CYCLESPARINE","amount":4000.0},{"sl":"262","name":"CYCLOSPORINE C0 LEVEL","amount":4000.0},{"sl":"263","name":"CYCLOSPORINE C2 LEVEL","amount":4000.0},{"sl":"264","name":"CYSTANIN C","amount":2600.0},{"sl":"265","name":"CYSTIC FIBROSIS (IRT SCREENING ASSAY)","amount":800.0},{"sl":"266","name":"CYSTICIRCOSIS (TAENIASOLIUM)","amount":1000.0},{"sl":"267","name":"CYTOSPORA (STOOL)","amount":250.0},{"sl":"268","name":"D3-HYDROXYBUTYRATE","amount":1700.0},{"sl":"269","name":"DC","amount":100.0},{"sl":"270","name":"DC, MP","amount":200.0},{"sl":"271","name":"D-DIMER","amount":800.0},{"sl":"272","name":"DENGUE IGG & IGM (BY ELISA)","amount":600.0},{"sl":"273","name":"DENGUE IGG (BY ELISA)","amount":500.0},{"sl":"274","name":"DENGUE IGM (BY ELISA)","amount":500.0},{"sl":"275","name":"DENGUE NS1","amount":800.0},{"sl":"276","name":"DENGUE NS1 (IGG + IGM)","amount":900.0},{"sl":"277","name":"DENGUE RNA PCR (QUALITATIVE)","amount":4400.0},{"sl":"278","name":"DHEASO4","amount":700.0},{"sl":"279","name":"DIABETES PROFILE - 1","amount":1200.0},{"sl":"280","name":"DIABETES PROFILE - 2","amount":2800.0},{"sl":"281","name":"DIGOXIN","amount":900.0},{"sl":"282","name":"DIHYDROTESTOSTERONE (DHT)","amount":4300.0},{"sl":"283","name":"DIPTHERIA IGG ANTIBODY","amount":4650.0},{"sl":"284","name":"DMD TEST (DUCHENNE MUSCULAR DYSTROPHY)","amount":7800.0},{"sl":"285","name":"DOUBLE MARKER","amount":2800.0},{"sl":"286","name":"DPD (DEOXYPYRIDINOLIN)","amount":1800.0},{"sl":"287","name":"DRUG OF ABUSE 5 PANEL","amount":2800.0},{"sl":"288","name":"DRUG OF ABUSE 9 PANEL","amount":6000.0},{"sl":"289","name":"DRUGS OF ABUSE: 6 DRUGS (OPIATES, PCP,\n COCAINE, CANNABINOIDS, AMPHETAMINE,\n BARBITURATES)","amount":2700.0},{"sl":"290","name":"ECCINOCOCCUS IGG / HYDATID CYST (EACH)","amount":1500.0},{"sl":"291","name":"EGFR","amount":400.0},{"sl":"292","name":"ELECTROLITISE","amount":600.0},{"sl":"293","name":"ENA PROFILE","amount":4300.0},{"sl":"294","name":"ENDOMYSIAL IGA","amount":3200.0},{"sl":"295","name":"ENDOMYSIAL IGG","amount":3200.0},{"sl":"296","name":"ENDOMYSIAL IGM","amount":3200.0},{"sl":"297","name":"ENTAMOEBA HISTOLYTICA","amount":1700.0},{"sl":"298","name":"EPSTEIN BAR VIRUS (VCA) IGG","amount":2800.0},{"sl":"299","name":"EPSTEIN BAR VIRUS (VCA) IGM","amount":2800.0},{"sl":"300","name":"ER (ESTROGEN RECEPTOR)","amount":1700.0},{"sl":"301","name":"ERYTHROPOIETIN (EPO)","amount":1320.0},{"sl":"302","name":"ESR","amount":180.0},{"sl":"303","name":"ESTRADIOL/E2","amount":800.0},{"sl":"304","name":"ESTRIOL/E3","amount":1000.0},{"sl":"305","name":"EXECUTIVE HELTH CHECK-UP PROFILE - 1","amount":3100.0},{"sl":"306","name":"EXECUTIVE HELTH CHECK-UP PROFILE - 2","amount":3500.0},{"sl":"307","name":"Exudate Culture and Sensitivity","amount":100.0},{"sl":"308","name":"FACTOR IX","amount":4800.0},{"sl":"309","name":"FACTOR V","amount":2500.0},{"sl":"310","name":"FACTOR V (LEIDEN ACTIVITY)","amount":6000.0},{"sl":"311","name":"FACTOR VI","amount":2500.0},{"sl":"312","name":"FACTOR VII ACTIVITY","amount":4600.0},{"sl":"313","name":"FACTOR VIII IMMUNO DEPLETED","amount":4700.0},{"sl":"314","name":"FACTOR X","amount":4700.0},{"sl":"315","name":"FAETAL HEAMOGLOBIN (HBF)","amount":700.0},{"sl":"316","name":"FASTING URINE GLUCOSE","amount":100.0},{"sl":"317","name":"FATTY ACID OXIDATION DISORDER","amount":2000.0},{"sl":"318","name":"FDP","amount":700.0},{"sl":"319","name":"FECAL ELASTASE","amount":5300.0},{"sl":"320","name":"FERRITIN","amount":600.0},{"sl":"321","name":"FERTILITY FAMALE PROFILE - 2","amount":3500.0},{"sl":"322","name":"FERTILITY FEMALE PROFILE - 1","amount":2600.0},{"sl":"323","name":"FERTILITY MALE PROFILE","amount":3000.0},{"sl":"324","name":"FERTILITY FEMALE PROFILE -2","amount":3300.0},{"sl":"325","name":"FERTILITY MALE PROFILE","amount":3000.0},{"sl":"326","name":"FEVER VIRUS PROFILE","amount":900.0},{"sl":"327","name":"FIBRINOGEN","amount":500.0},{"sl":"328","name":"FILARIA ANTIBODY","amount":1000.0},{"sl":"329","name":"FLUID FOR PROTEIN","amount":300.0},{"sl":"330","name":"FLUID FOR ALBUMIN","amount":300.0},{"sl":"331","name":"FLUID FOR AMYLASE","amount":400.0},{"sl":"332","name":"FLUID FOR BIOCHEMICAL EXAMINATION","amount":250.0},{"sl":"333","name":"FLUID FOR CHLORIDE","amount":250.0},{"sl":"334","name":"FLUID FOR CULTURE","amount":700.0},{"sl":"335","name":"FLUID FOR LDH","amount":400.0},{"sl":"336","name":"FLUID FOR LDH-1","amount":550.0},{"sl":"337","name":"FLUID FOR LIPASE","amount":400.0},{"sl":"338","name":"FLUID FOR SUGAR","amount":100.0},{"sl":"339","name":"FLUID FOR URIC ACID","amount":250.0},{"sl":"340","name":"FNAC","amount":1000.0},{"sl":"341","name":"FNAC (DEEP ORGAN) REVIEW SLIDE","amount":500.0},{"sl":"342","name":"FNAC (FROM SUPERFICIAL ORGAN)","amount":700.0},{"sl":"343","name":"FNAC (REVIEW SLIDE)","amount":400.0},{"sl":"344","name":"FOLIC ACID","amount":1000.0},{"sl":"345","name":"FORMAT LFT (BILIRUBIN)","amount":200.0},{"sl":"346","name":"FREE ANDROGEN INDEX (FAI)","amount":3800.0},{"sl":"347","name":"FREE BETA HCG","amount":700.0},{"sl":"348","name":"FREE INSULIN","amount":800.0},{"sl":"349","name":"FREE LIGTH CHAINS (KAPPA & LAMBA)","amount":6300.0},{"sl":"350","name":"FREE PSA","amount":750.0},{"sl":"351","name":"FREE TESTOSTERONE","amount":700.0},{"sl":"352","name":"FRUCTOSAMINE","amount":700.0},{"sl":"353","name":"FSH","amount":500.0},{"sl":"354","name":"FT3","amount":500.0},{"sl":"355","name":"FT3 + FT4","amount":750.0},{"sl":"356","name":"FT3 + TSH","amount":700.0},{"sl":"357","name":"FT3+FT4+TSH (CLIA)","amount":1000.0},{"sl":"358","name":"FT4","amount":500.0},{"sl":"359","name":"FT4 + TSH","amount":700.0},{"sl":"360","name":"FTA ABS","amount":1800.0},{"sl":"361","name":"FUNGAL STAIN","amount":250.0},{"sl":"362","name":"FUNGUS FOR CULTURE","amount":900.0},{"sl":"363","name":"G.F.R","amount":1000.0},{"sl":"364","name":"G.G.T.P","amount":400.0},{"sl":"365","name":"G6PD (QUALITATIVE)","amount":350.0},{"sl":"366","name":"G6PD (QUANTITATIVE)","amount":400.0},{"sl":"367","name":"GAD ANTIBODY","amount":7000.0},{"sl":"368","name":"GALACTOMANNAN","amount":5600.0},{"sl":"369","name":"GAMMA GT (GGT)","amount":300.0},{"sl":"370","name":"GASTRIC PARIETAL CELL ANTIBODY","amount":1800.0},{"sl":"371","name":"GASTRIN LEVEL","amount":2200.0},{"sl":"372","name":"GBM (ANTIBODY TO GLOMERULAR BASEMENT MEMBRANE)","amount":1800.0},{"sl":"373","name":"GENEX PART (FLUID) / CB NAT","amount":3800.0},{"sl":"374","name":"GENEX PART (SPUTAM) / CB NAT","amount":3800.0},{"sl":"375","name":"GLIADIN ANTIBODY - IGA","amount":1600.0},{"sl":"376","name":"GLIADIN ANTIBODY - IGG","amount":1600.0},{"sl":"377","name":"GLOBULIN","amount":250.0},{"sl":"378","name":"GLUCOSE (FASTING)","amount":100.0},{"sl":"379","name":"GLUCOSE (PP)","amount":100.0},{"sl":"380","name":"GLUCOSE (RANDOM)","amount":100.0},{"sl":"381","name":"GLUCOSE TOLERANCE TEST(GTT)","amount":300.0},{"sl":"382","name":"GLYCOCYLATED HEMOGLOBIN HBA1C (HPLC)","amount":600.0},{"sl":"383","name":"GLYCOPHORIN - A","amount":3550.0},{"sl":"384","name":"GRAM STAIN","amount":250.0},{"sl":"385","name":"GRAMS STAIN SMEAR","amount":250.0},{"sl":"386","name":"GROWTH HORMONE (GH)","amount":700.0},{"sl":"387","name":"H. PYLORI ANTIGEN IGA (BLOOD)","amount":1000.0},{"sl":"388","name":"H. PYLORI ANTIGEN IGA(STOOL)","amount":500.0},{"sl":"389","name":"H. PYLORI ANTIGEN IGG (BLOOD)","amount":1000.0},{"sl":"390","name":"H. PYLORI ANTIGEN IGG(STOOL)","amount":500.0},{"sl":"391","name":"H. PYLORI ANTIGEN IGM (BLOOD)","amount":1000.0},{"sl":"392","name":"HA (HYALURONIC ACID)","amount":1500.0},{"sl":"393","name":"HAM'S TEST (ACIDIFIED SERUM LYSIS TEST)","amount":900.0},{"sl":"394","name":"HAPTOGLOBIN","amount":1450.0},{"sl":"395","name":"HAV AB","amount":700.0},{"sl":"396","name":"HAV IGG","amount":700.0},{"sl":"397","name":"HAV IGM","amount":700.0},{"sl":"398","name":"HB% (HAEMOGLOBIN)","amount":100.0},{"sl":"399","name":"HB% ELECTROPHORESIS (BY HPLC)","amount":700.0},{"sl":"400","name":"HB%, ESR","amount":200.0},{"sl":"401","name":"HBC - IGM","amount":700.0},{"sl":"402","name":"HBCAB","amount":700.0},{"sl":"403","name":"HBEAB","amount":700.0},{"sl":"404","name":"HBEAG","amount":700.0},{"sl":"405","name":"HBSAB","amount":700.0},{"sl":"406","name":"HBSAG (AUSTRALIA ANTIGEN)","amount":400.0},{"sl":"407","name":"HBSAG (AUSTRALIA ANTIGEN)-ELISA","amount":400.0},{"sl":"408","name":"HBV DNA QUALITATIVE","amount":3200.0},{"sl":"409","name":"HBV DNA QUANTITATIVE","amount":3800.0},{"sl":"410","name":"HBV GENOTYPE","amount":10700.0},{"sl":"411","name":"HCV - ( ELISA )","amount":700.0},{"sl":"412","name":"HCV IGM","amount":700.0},{"sl":"413","name":"HCV GENOTYPE","amount":7500.0},{"sl":"414","name":"HCV RNA (QUALITATIVE)","amount":3400.0},{"sl":"415","name":"HCV RNA QUANTITATIVE","amount":5000.0},{"sl":"416","name":"HCV-AB (BY ELISA METHOD)","amount":700.0},{"sl":"417","name":"HDL CHOLESTEROL","amount":250.0},{"sl":"418","name":"HDVAB","amount":750.0},{"sl":"419","name":"HDVAG","amount":750.0},{"sl":"420","name":"HDVIGG","amount":750.0},{"sl":"421","name":"HDVIGM","amount":750.0},{"sl":"422","name":"HE4 WITH ROMA INDEX","amount":5000.0},{"sl":"423","name":"HEINZ BODIES","amount":900.0},{"sl":"424","name":"HEPATIC PROFILE - 1","amount":800.0},{"sl":"425","name":"HEPATIC PROFILE - 2","amount":1300.0},{"sl":"426","name":"HEPATITIS-B PROFILE","amount":3100.0},{"sl":"427","name":"HER-2 / NEU ONCOPROTEIN (C-ERB B2)","amount":2800.0},{"sl":"428","name":"HERPES IGG","amount":500.0},{"sl":"429","name":"HERPES IGG (II)","amount":500.0},{"sl":"430","name":"HERPES IGM","amount":500.0},{"sl":"431","name":"HERPES IGM (II)","amount":500.0},{"sl":"432","name":"HERPES PROFILE","amount":1700.0},{"sl":"433","name":"HEV AB","amount":700.0},{"sl":"434","name":"HEV IGG","amount":700.0},{"sl":"435","name":"HEV IGM","amount":700.0},{"sl":"436","name":"HISTONE ANTIBODY","amount":5000.0},{"sl":"437","name":"HIV - ELISA","amount":700.0},{"sl":"438","name":"HIV - P24 ANTIGEN","amount":2800.0},{"sl":"439","name":"HIV - PROVIRAL DNA","amount":2800.0},{"sl":"440","name":"HIV I & II","amount":700.0},{"sl":"441","name":"HIV I & II (WESTERN BLOT)","amount":2800.0},{"sl":"442","name":"HIV-1 RNA DETECTION QUALITATIVE","amount":4500.0},{"sl":"443","name":"HIV-1 RNA QUANTIFICATIONS (VIRAL LOAD)","amount":8000.0},{"sl":"444","name":"HLA-B-27 (BY PCR)","amount":1500.0},{"sl":"445","name":"HOMA IR","amount":1500.0},{"sl":"446","name":"HOMOCYSTEINE","amount":1700.0},{"sl":"447","name":"HPTH","amount":900.0},{"sl":"448","name":"HS-CRP","amount":800.0},{"sl":"449","name":"HS-TROPONIN I","amount":1200.0},{"sl":"450","name":"HSV DNA PCR (CSF)","amount":7400.0},{"sl":"451","name":"HSV DNA PCR (QUANTITATIVE)","amount":7400.0},{"sl":"452","name":"HSV DNA PCR QUALITATIVE","amount":4400.0},{"sl":"453","name":"HTLV 1 & 2 VIRUS (TOTAL ANTIBODY)","amount":5000.0},{"sl":"454","name":"HUMAN IL - 1 ALPHA","amount":1250.0},{"sl":"455","name":"HUMAN IL - 1 BETA","amount":1250.0},{"sl":"456","name":"HUMAN PAPILOMA VIRUS (HPV) BY PCR","amount":3300.0},{"sl":"457","name":"HUMAN PTGS - 2 / COX -2 (PROSTAGLAND\n ENDOPEROXIDE SYNTHASE - 2)","amount":2800.0},{"sl":"458","name":"HUMAN TNF ALPHA","amount":1250.0},{"sl":"459","name":"HYDROXY INDOLIC ACITIC ACID (5 - HIAA)","amount":2800.0},{"sl":"460","name":"HYPERTENSION PROFILE","amount":1500.0},{"sl":"461","name":"IA2 ANTIBODY (INSULIN AUTOANTIBODIES)","amount":3800.0},{"sl":"462","name":"IGA(IMMUNOGLOBULIN)","amount":700.0},{"sl":"463","name":"IGE (SUBTYPE)","amount":600.0},{"sl":"464","name":"IGE (TOTAL)","amount":600.0},{"sl":"465","name":"IGF BINDING PROTEIN-3","amount":2000.0},{"sl":"466","name":"IGF-1","amount":3200.0},{"sl":"467","name":"IGG 4 SUBCLASSES","amount":6500.0},{"sl":"468","name":"IGG(IMMUNOGLOBULIN)","amount":700.0},{"sl":"469","name":"IGM(IMMUNOGLOBULIN)","amount":700.0},{"sl":"470","name":"IHC (ANY FOUR MARKER)","amount":9500.0},{"sl":"471","name":"IHC (ANY ONE MARKER)","amount":2600.0},{"sl":"472","name":"IHC (ANY THREE MARKER)","amount":7300.0},{"sl":"473","name":"IHC (ANY TWO MARKER)","amount":5300.0},{"sl":"474","name":"IHC BLOCK REVIEW","amount":5000.0},{"sl":"475","name":"IHC MARKER (ANY FIVE)","amount":11000.0},{"sl":"476","name":"IHC MARKER (ANY SIX)","amount":13000.0},{"sl":"477","name":"IL 28 B HOST GENOTYPE","amount":1700.0},{"sl":"478","name":"IMMUNOFIXATION ELECTROPHORESIS (BLOOD)","amount":8000.0},{"sl":"479","name":"IMMUNOFIXATION ELECTROPHORESIS (URINE)","amount":7800.0},{"sl":"480","name":"IMMUNOPHENOTYPING","amount":11500.0},{"sl":"481","name":"INBORN ERRORS OF CARBOHYDRATE METABOLISM","amount":800.0},{"sl":"482","name":"INDIA INK PREPARATION","amount":250.0},{"sl":"483","name":"INFECTIOUS MONONUCLEOSIS TEST","amount":900.0},{"sl":"484","name":"ING. PHOSPHATE","amount":250.0},{"sl":"485","name":"INHIBIN-A","amount":2300.0},{"sl":"486","name":"INHIBIN-B","amount":3400.0},{"sl":"487","name":"INSULIN (FASTING)","amount":600.0},{"sl":"488","name":"INSULIN (PP)","amount":600.0},{"sl":"489","name":"INSULIN (RANDOM)","amount":600.0},{"sl":"490","name":"INSULIN ANTIBODY","amount":1000.0},{"sl":"491","name":"INTERLEUKIN-6 (IL-6)","amount":2600.0},{"sl":"492","name":"INTRINSIC FACTOR ANTIBODY","amount":3700.0},{"sl":"493","name":"IONISED CALCIUM","amount":700.0},{"sl":"494","name":"IRON","amount":400.0},{"sl":"495","name":"IRON + TIBC","amount":700.0},{"sl":"496","name":"IRON DEFICIENCY PROFILE","amount":2200.0},{"sl":"497","name":"IRON, TIBC & TRANSFERRIN SATURATION","amount":1200.0},{"sl":"498","name":"IS LET CELL ANTIBODY","amount":2300.0},{"sl":"499","name":"JAK 2 MUTATION STUDY","amount":7500.0},{"sl":"500","name":"JAK2 EXON 12 MUTATIONS","amount":5500.0},{"sl":"501","name":"JAK2V617F (QUALITATIVE)","amount":7500.0},{"sl":"502","name":"JAPANESE ENCEPHALITIS IGM (BY MAC ELISA)","amount":1200.0},{"sl":"503","name":"KARYOTYPING WITH BINDING (TISSUE)","amount":6500.0},{"sl":"504","name":"KETONE (ACETON) QUALITATIVE URINE","amount":200.0},{"sl":"505","name":"KETONE BODIES (ACETONE) BLOOD","amount":1000.0},{"sl":"506","name":"KIDNEY RENAL PROFILE - 1","amount":800.0},{"sl":"507","name":"KIDNEY RENAL PROFILE - 2","amount":1500.0},{"sl":"508","name":"KIDNEY RENAL PROFILE - 3","amount":2400.0},{"sl":"509","name":"KLB STAIN","amount":200.0},{"sl":"510","name":"KOH PREPARETION","amount":200.0},{"sl":"511","name":"L. D. BODIES","amount":200.0},{"sl":"512","name":"L.D.H","amount":400.0},{"sl":"513","name":"L.D.H. - 5","amount":1200.0},{"sl":"514","name":"L.D.H. 1 (HBDH)","amount":500.0},{"sl":"515","name":"L.D.L. DIRECT","amount":700.0},{"sl":"516","name":"LA SSA (SOLUBLE SUBSTANCES A)/ RO\n ANTIBODY","amount":1200.0},{"sl":"517","name":"LA SSB (SOLUBLE SUBSTANCES B)/ LA\n ANTIBODY","amount":1200.0},{"sl":"518","name":"LACTATE","amount":1000.0},{"sl":"519","name":"LACTIC ACID","amount":1000.0},{"sl":"520","name":"LARGE HP- 4 SLIDE","amount":1500.0},{"sl":"521","name":"LDL CHOLESTEROL","amount":700.0},{"sl":"522","name":"LE CELL","amount":200.0},{"sl":"523","name":"LEAD","amount":2900.0},{"sl":"524","name":"LEPTOSPIRA ANTIBODY - IGM","amount":1200.0},{"sl":"525","name":"LEPTOSPIRA DETECTION","amount":1100.0},{"sl":"526","name":"LEPTOSPIRA DNA PCR (QUALITATIVE)","amount":4400.0},{"sl":"527","name":"LEVETIRACETAM","amount":4500.0},{"sl":"528","name":"LFT WITH GGT","amount":800.0},{"sl":"529","name":"LH","amount":500.0},{"sl":"530","name":"LH+FSH","amount":750.0},{"sl":"531","name":"LH+FSH+PRL","amount":1000.0},{"sl":"532","name":"LIPASE","amount":500.0},{"sl":"533","name":"LIPID (TOTAL)","amount":400.0},{"sl":"534","name":"LIPID PROFILE","amount":800.0},{"sl":"535","name":"LIPO PROTINE(A)","amount":700.0},{"sl":"536","name":"LITHIUM","amount":300.0},{"sl":"537","name":"LIVER FUNCTION TEST (LFT)","amount":700.0},{"sl":"538","name":"LKM1 (ANTIBODIES TO LIVER LIVER KIDNEY\n MICROSOMES)","amount":2100.0},{"sl":"539","name":"LUPUS ANTICOAGULANT","amount":1000.0},{"sl":"540","name":"LYME DISEASE (BORRELIA BURGDORFERI IGG)","amount":2200.0},{"sl":"541","name":"LYME DISEASE (BORRELIA BURGDORFERI IGM)","amount":2250.0},{"sl":"542","name":"MAGNESIUM","amount":600.0},{"sl":"543","name":"MAPLE SYRUP URINE DISEASE (MSUD)","amount":800.0},{"sl":"544","name":"MARRIAGE PROFILE","amount":2350.0},{"sl":"545","name":"MEAN CORPUSCULAR HEMOGLOBIN (MCH)","amount":200.0},{"sl":"546","name":"MEAN CORPUSCULAR HEMOGLOBIN\n CONC.(MCHC)","amount":200.0},{"sl":"547","name":"MEAN CORPUSCULAR VOLUME(MCV)","amount":200.0},{"sl":"548","name":"MEASLES IGG","amount":2600.0},{"sl":"549","name":"MEASLES IGG (CSF)","amount":4200.0},{"sl":"550","name":"MEASLES IGM","amount":2600.0},{"sl":"551","name":"MEASLES PCR (QUALITATIVE)","amount":4400.0},{"sl":"552","name":"MEDIUM HP - 3 SLIDE","amount":1100.0},{"sl":"553","name":"METABOLIC SCREENING (MS) PANEL","amount":6000.0},{"sl":"554","name":"METABOLIC SCREENING(URINE/)","amount":750.0},{"sl":"555","name":"METANEPHRINE (BLOOD)","amount":4500.0},{"sl":"556","name":"METANEPHRINE (FREE)","amount":4400.0},{"sl":"557","name":"METANEPHRINE URINE","amount":1800.0},{"sl":"558","name":"METH-HAEMOGLOBIN","amount":500.0},{"sl":"559","name":"MICRO FILARIA","amount":200.0},{"sl":"560","name":"MILOMA PROFILE","amount":16200.0},{"sl":"561","name":"MITOCHONDRIA (M2) ANTIBODY / AMA","amount":1700.0},{"sl":"562","name":"MONO SODIUM UREAT CALCIUM PHOSPHATASE","amount":1000.0},{"sl":"563","name":"MP (MALARIAL PARASITES)","amount":200.0},{"sl":"564","name":"MPLGENE MUTATIONS","amount":4500.0},{"sl":"565","name":"MTHFR ENZYME","amount":6000.0},{"sl":"566","name":"MUMPS IGG","amount":2600.0},{"sl":"567","name":"MUMPS IGG (CSF)","amount":3300.0},{"sl":"568","name":"MUMPS IGG (SERUM)","amount":2600.0},{"sl":"569","name":"MUMPS IGM","amount":2600.0},{"sl":"570","name":"MUMPS PCR (QUALITATIVE)","amount":4400.0},{"sl":"571","name":"MUSK ANTIBODY","amount":8500.0},{"sl":"572","name":"MYOGLOBULIN (SERUM)","amount":1400.0},{"sl":"573","name":"NICOTINE METABOLIC (QUANTITATIVE)","amount":3000.0},{"sl":"574","name":"NK CELLS (NATURAL KILLER CELLS)","amount":3500.0},{"sl":"575","name":"NON PROTEIN NITROGEN (NPN)","amount":200.0},{"sl":"576","name":"NOR ADRENALINE / NON EPINEPHRINE (BLOOD)","amount":1900.0},{"sl":"577","name":"NOR ADRENALINE / NON EPINEPHRINE (BLOOD)","amount":1900.0},{"sl":"578","name":"NOR METANEPHRINE (BLOOD)","amount":3550.0},{"sl":"579","name":"NOR METANEPHRINE (URINE)","amount":3550.0},{"sl":"580","name":"OLIGOCLONAL BAND","amount":4750.0},{"sl":"581","name":"ONCOLOGY PROFILE","amount":2000.0},{"sl":"582","name":"OPINION SLIDE FOR HISTOPHATOLOGY","amount":350.0},{"sl":"583","name":"OPTIMAL MALERIA / DUAL ANTIGEN","amount":600.0},{"sl":"584","name":"ORGANIC ACID DISORDER","amount":2000.0},{"sl":"585","name":"OSMOLALITY (SERUM)","amount":600.0},{"sl":"586","name":"OSMOLALITY (URINE)","amount":600.0},{"sl":"587","name":"OSMOLARITY (URINE)","amount":600.0},{"sl":"588","name":"OSMOTIC FRAGILITY","amount":350.0},{"sl":"589","name":"OSTEOCALCIN","amount":2200.0},{"sl":"590","name":"OT CULTURE","amount":700.0},{"sl":"591","name":"OXALATE (24 HRS URINE)","amount":1200.0},{"sl":"592","name":"P-ANCA","amount":1200.0},{"sl":"593","name":"PAP STAIN (DIRECT PATIENT)","amount":800.0},{"sl":"594","name":"PAP STAIN FLUID (MALIGNANT CELL DETECTION)","amount":400.0},{"sl":"595","name":"PAP STAIN URINE (MALIGNANT CELL DETECTION)","amount":400.0},{"sl":"596","name":"PAPPA (PREGNANCY ASSOCIATED PLASMA PROTEIN)","amount":2200.0},{"sl":"597","name":"PARACETAMOL LEVEL","amount":2600.0},{"sl":"598","name":"PARANEOPLASTIC PROFILE (NEURONAL ANTIGENS PROFILE)","amount":5000.0},{"sl":"599","name":"PARIETAL CELL ANTIBODY","amount":2800.0},{"sl":"600","name":"PARVOVIRUS IGG","amount":3200.0},{"sl":"601","name":"PARVOVIRUS IGM","amount":3200.0},{"sl":"602","name":"PCO2 (ARTERIAL)","amount":1500.0},{"sl":"603","name":"PCOD PROFILE","amount":2500.0},{"sl":"604","name":"PCV (PACKED CELL VOLUME)","amount":200.0},{"sl":"605","name":"PEPSINOGEN 1 & 2","amount":15800.0},{"sl":"606","name":"PERIPHERAL BLOOD SMEAR (PBS)","amount":200.0},{"sl":"607","name":"PERTUSSIS IGG ANTIBODY","amount":3300.0},{"sl":"608","name":"PH (BLOOD)","amount":1500.0},{"sl":"609","name":"PH (URINE / FLUID)","amount":1500.0},{"sl":"610","name":"PHADIATOP- IGE","amount":1600.0},{"sl":"611","name":"PHENOBARBITONE","amount":700.0},{"sl":"612","name":"PHENYLKETONURIA (PKU)","amount":800.0},{"sl":"613","name":"PHENYTOIN","amount":700.0},{"sl":"614","name":"PHOSPHOLIPID IGG","amount":500.0},{"sl":"615","name":"PHOSPHOLIPID IGM","amount":500.0},{"sl":"616","name":"PLA 2R ANTIBODY","amount":6000.0},{"sl":"617","name":"PLATELET COUNT (THROMBOCYTE)","amount":200.0},{"sl":"618","name":"PNEUMOSLIDE PANEL","amount":4200.0},{"sl":"619","name":"PNH PANEL","amount":7400.0},{"sl":"620","name":"POTASSIUM","amount":250.0},{"sl":"621","name":"PR(PROGESTERON RECEPTOR)","amount":1600.0},{"sl":"622","name":"PRE CATH PROFILE","amount":2000.0},{"sl":"623","name":"PRE EMPLOYMENT CHECK UP","amount":1100.0},{"sl":"624","name":"PRE OPERATIVE PROFILE","amount":2500.0},{"sl":"625","name":"PRE OPERATIVE SEROLOGY PROFILE","amount":1400.0},{"sl":"626","name":"PRO - BNP","amount":2100.0},{"sl":"627","name":"PRO-CALCITONINE","amount":2000.0},{"sl":"628","name":"PROGESTERONE","amount":600.0},{"sl":"629","name":"PROLACTIN (PRL)","amount":500.0},{"sl":"630","name":"PROTEIN","amount":250.0},{"sl":"631","name":"PROTEIN C ACTIVITY","amount":4800.0},{"sl":"632","name":"PROTEIN ELECTROPHORESIS","amount":900.0},{"sl":"633","name":"PROTEIN ELECTROPHORESIS (URINE)","amount":1700.0},{"sl":"634","name":"PROTEIN S ACTIVITY","amount":4700.0},{"sl":"635","name":"PROTHOMBIN TIME (P-TIME/PT) WITH INR","amount":350.0},{"sl":"636","name":"PSA (PROSTATE SPECIFIC ANTIGEN)","amount":600.0},{"sl":"637","name":"PTTK (KAOLIN CLOTTING TIME - KCT)","amount":2800.0},{"sl":"638","name":"PUS CULTURE AND SENSITIVITY","amount":700.0},{"sl":"639","name":"PYRUVIC ACID","amount":2700.0},{"sl":"640","name":"QUADRUPLE MARKAR TEST","amount":3800.0},{"sl":"641","name":"RA FACTOR","amount":300.0},{"sl":"642","name":"RBC FOLATE","amount":2000.0},{"sl":"643","name":"RBC INDEX","amount":250.0},{"sl":"644","name":"RBC MORPHOLOGY","amount":200.0},{"sl":"645","name":"RDW","amount":200.0},{"sl":"646","name":"RENIN (PLASMA RENIN ACTIVITY)","amount":4700.0},{"sl":"647","name":"RETICULOCYTE COUNT","amount":250.0},{"sl":"648","name":"RH ANTIBODY TITER / ANTI D TITRE","amount":500.0},{"sl":"649","name":"RK - 39 ( KALAZAR )","amount":700.0},{"sl":"650","name":"RNP-SM ANTIBODY","amount":1500.0},{"sl":"651","name":"ROSEWALLER TEST","amount":200.0},{"sl":"652","name":"ROTAVIRUS","amount":2100.0},{"sl":"653","name":"RUBELLA AVIDITY","amount":1400.0},{"sl":"654","name":"RUBELLA DNA PCR (QUALITATIVE)","amount":4400.0},{"sl":"655","name":"RUBELLA IGG","amount":500.0},{"sl":"656","name":"RUBELLA IGM","amount":500.0},{"sl":"657","name":"S.G.O.T. (LFT)","amount":200.0},{"sl":"658","name":"S.G.P.T","amount":200.0},{"sl":"659","name":"SAAG","amount":600.0},{"sl":"660","name":"SCA 1","amount":4800.0},{"sl":"661","name":"SCA 12","amount":4800.0},{"sl":"662","name":"SCA 2","amount":6400.0},{"sl":"663","name":"SCA 3","amount":4800.0},{"sl":"664","name":"SCA 6","amount":4800.0},{"sl":"665","name":"SCA 7","amount":6400.0},{"sl":"666","name":"SCA COMPREHENSIVE PANEL","amount":17500.0},{"sl":"667","name":"SCRUB TYPHUS IGG","amount":1600.0},{"sl":"668","name":"SCRUB TYPHUS IGM","amount":1600.0},{"sl":"669","name":"SEMEN ANALYSIS","amount":250.0},{"sl":"670","name":"SEMEN CULTURE AND SENSITIVITY","amount":700.0},{"sl":"671","name":"SEMINAL FLUID FOR DETEIL ANALYSIS","amount":300.0},{"sl":"672","name":"SERUM FOLATE","amount":1000.0},{"sl":"673","name":"SERUM SPECIAL - 1","amount":550.0},{"sl":"674","name":"SERUM SPECIAL - 2","amount":750.0},{"sl":"675","name":"SERUM SPEICAL - 3","amount":1200.0},{"sl":"676","name":"SHBG","amount":2600.0},{"sl":"677","name":"SICKLE SCREENING TEST","amount":600.0},{"sl":"678","name":"SICKLING TEST / SICKLE SCREENING TEST","amount":600.0},{"sl":"679","name":"SKIN SCRAPING FOR AFB","amount":250.0},{"sl":"680","name":"SLE PHENOMENON(LE+ANA+DS DNA)","amount":1000.0},{"sl":"681","name":"SMALL HP - 1 SLIDE","amount":400.0},{"sl":"682","name":"SMALL HP - 2 SLIDE","amount":700.0},{"sl":"683","name":"SMITH ANTIGEN","amount":1500.0},{"sl":"684","name":"SODIUM","amount":250.0},{"sl":"685","name":"SODIUM VALPROATE","amount":700.0},{"sl":"686","name":"SPOT URINE FOR BUN","amount":200.0},{"sl":"687","name":"SPOT URINE FOR BILLURUBIN","amount":200.0},{"sl":"688","name":"SPOT URINE FOR BI-CARBONATE","amount":300.0},{"sl":"689","name":"SPOT URINE FOR CALCIUM","amount":200.0},{"sl":"690","name":"SPOT URINE FOR CHLORIDE","amount":250.0},{"sl":"691","name":"SPOT URINE FOR CHOLESTROL","amount":500.0},{"sl":"692","name":"SPOT URINE FOR COBALT","amount":1800.0},{"sl":"693","name":"SPOT URINE FOR COCAINE","amount":1500.0},{"sl":"694","name":"SPOT URINE FOR CREATININE","amount":250.0},{"sl":"695","name":"SPOT URINE FOR FERRIC CHLORIDE","amount":200.0},{"sl":"696","name":"SPOT URINE FOR METHAMPHETAMINE","amount":1400.0},{"sl":"697","name":"SPOT URINE FOR MICRAL","amount":350.0},{"sl":"698","name":"SPOT URINE FOR MICRO ALBUMIN","amount":500.0},{"sl":"699","name":"SPOT URINE FOR MICRO ALBUMINURIA","amount":450.0},{"sl":"700","name":"SPOT URINE FOR MICRO PROTEIN","amount":300.0},{"sl":"701","name":"SPOT URINE FOR PHENCYLIDINE(PCP)","amount":1500.0},{"sl":"702","name":"SPOT URINE FOR PHOSPHATE","amount":200.0},{"sl":"703","name":"SPOT URINE FOR POTASSIUM","amount":250.0},{"sl":"704","name":"SPOT URINE FOR PROPOXYPHENE","amount":1000.0},{"sl":"705","name":"SPOT URINE FOR PROTEINURIA","amount":300.0},{"sl":"706","name":"SPOT URINE FOR SODIUM","amount":250.0},{"sl":"707","name":"SPOT URINE FOR UREA","amount":150.0},{"sl":"708","name":"SPOT URINE FOR URIC ACID","amount":200.0},{"sl":"709","name":"SPUTUM CULTURE AND SENSITIVITY","amount":700.0},{"sl":"710","name":"SPUTUM FOR AFB","amount":200.0},{"sl":"711","name":"STD PROFILE","amount":1000.0},{"sl":"712","name":"STONE ANALYSIS","amount":400.0},{"sl":"713","name":"STOOL CULTURE AND SENSITIVITY","amount":700.0},{"sl":"714","name":"STOOL FOR CALPROTECTIN","amount":3100.0},{"sl":"715","name":"STOOL FOR REDUCING SUBSTANCE","amount":200.0},{"sl":"716","name":"STOOL FOR VIBRIO CHOLERAE","amount":450.0},{"sl":"717","name":"STOOL OBT","amount":150.0},{"sl":"718","name":"STOOL RE","amount":200.0},{"sl":"719","name":"STOOL RE + OBT","amount":200.0},{"sl":"720","name":"SWAB CULTURE AND SENSITIVITY","amount":700.0},{"sl":"721","name":"SYPHILLIS IGG & IGM","amount":600.0},{"sl":"722","name":"T3","amount":300.0},{"sl":"723","name":"T3 + T4","amount":600.0},{"sl":"724","name":"T3+T4+TSH","amount":700.0},{"sl":"725","name":"T3+T4+TSH+FT3+FT4","amount":1500.0},{"sl":"726","name":"T3+TSH","amount":600.0},{"sl":"727","name":"T4","amount":300.0},{"sl":"728","name":"T4 + TSH","amount":600.0},{"sl":"729","name":"TACROLIMUS","amount":4450.0},{"sl":"730","name":"TB GAMMA INTERFERON (TB GOLD)","amount":2800.0},{"sl":"731","name":"TB PCR (DNA)","amount":1700.0},{"sl":"732","name":"TB PCR (RNA)","amount":2700.0},{"sl":"733","name":"TC (TOTAL COUNT)","amount":100.0},{"sl":"734","name":"TC, DC","amount":150.0},{"sl":"735","name":"TC, DC & HB%","amount":200.0},{"sl":"736","name":"TC, DC, HB% & ESR","amount":200.0},{"sl":"737","name":"TC, DC, HB% & MP","amount":200.0},{"sl":"738","name":"TC, DC, MP & ESR","amount":200.0},{"sl":"739","name":"TESTOSTERONE","amount":600.0},{"sl":"740","name":"THALASSEMIA PROFILE","amount":2300.0},{"sl":"741","name":"THROMBIN (III)","amount":3650.0},{"sl":"742","name":"THROMBIN TIME","amount":600.0},{"sl":"743","name":"THROMBOPHILIA PROFILE","amount":16300.0},{"sl":"744","name":"THYROGLOBULIN ANTIBODY-ATA (ANTI TBG FOR CANCER)","amount":1400.0},{"sl":"745","name":"THYROID PROFILE","amount":1400.0},{"sl":"746","name":"THYROID PROFILE - 2","amount":2900.0},{"sl":"747","name":"THYROID PROFILE - 3","amount":1200.0},{"sl":"748","name":"THYROID PROFILE - 3","amount":1200.0},{"sl":"749","name":"THYROXINE BINDING GLOBULIN(TBG)","amount":900.0},{"sl":"750","name":"TIBC","amount":400.0},{"sl":"751","name":"TISSUE FOR CULTURE","amount":700.0},{"sl":"752","name":"TORCH PROFILE - 1","amount":2400.0},{"sl":"753","name":"TORCH PROFILE - 2","amount":2600.0},{"sl":"754","name":"TORCH (10) PANEL","amount":2500.0},{"sl":"755","name":"TORCH ANTIBODIES (ONLY IGM)","amount":1600.0},{"sl":"756","name":"TORCH PANEL (8 PARAMETERS)","amount":2400.0},{"sl":"757","name":"TOTAL BILIRUBIN (NEWBORN)","amount":200.0},{"sl":"758","name":"TOTAL BILIRUBIN (TOTAL + DIRECT)","amount":200.0},{"sl":"759","name":"TOTAL PROTEINS","amount":250.0},{"sl":"760","name":"TOXIC GRANULES","amount":200.0},{"sl":"761","name":"TOXO PLASMA IGG","amount":500.0},{"sl":"762","name":"TOXO PLASMA IGM","amount":500.0},{"sl":"763","name":"TOXOPLASMA DNA PCR (QUALITATIVE)","amount":4400.0},{"sl":"764","name":"TPHA","amount":400.0},{"sl":"765","name":"TPMT","amount":7400.0},{"sl":"766","name":"TRANSFERINE","amount":550.0},{"sl":"767","name":"TRANSFERINE SATURATION","amount":600.0},{"sl":"768","name":"TRIGLYCERIDES","amount":350.0},{"sl":"769","name":"TRIPLE MARKER","amount":1800.0},{"sl":"770","name":"TROPONIN I","amount":1200.0},{"sl":"771","name":"TROPONIN T","amount":1200.0},{"sl":"772","name":"TRYGLYCERIDE","amount":350.0},{"sl":"773","name":"TSH","amount":400.0},{"sl":"774","name":"TSH RECEPTOR ANTIBODIES","amount":4400.0},{"sl":"775","name":"TYPHI DOT IGM & IGG","amount":500.0},{"sl":"776","name":"UREA","amount":150.0},{"sl":"777","name":"URIC ACID","amount":200.0},{"sl":"778","name":"URINE BILIRUBIN","amount":200.0},{"sl":"779","name":"URINE CHYLURIA","amount":250.0},{"sl":"780","name":"URINE CULTURE AND SENSITIVITY","amount":700.0},{"sl":"781","name":"URINE FOR UROBILINOGEN","amount":200.0},{"sl":"782","name":"URINE FOR (RE+OBT)","amount":200.0},{"sl":"783","name":"URINE FOR ALBUMIN (QUALITATIVE)","amount":200.0},{"sl":"784","name":"URINE FOR MYOGLOBULIN","amount":1400.0},{"sl":"785","name":"URINE FOR OBT","amount":150.0},{"sl":"786","name":"URINE FOR PORPHOBILINOGEN","amount":200.0},{"sl":"787","name":"URINE FOR PREGCOLOUR(ELISA)","amount":200.0},{"sl":"788","name":"URINE FOR PROTINE CREATININE RATIO","amount":600.0},{"sl":"789","name":"URINE FOR REDUCING SUBSTANCE","amount":200.0},{"sl":"790","name":"URINE FOR UROBILINOGEN","amount":200.0},{"sl":"791","name":"URINE HEMOSIDERIN","amount":750.0},{"sl":"792","name":"URINE PREGCOLOUR / GRAVINDEX","amount":200.0},{"sl":"793","name":"URINE RE","amount":150.0},{"sl":"794","name":"V.L.D.L. CHOLESTEROL","amount":700.0},{"sl":"795","name":"VACCINE ALLERGY","amount":2800.0},{"sl":"796","name":"VANILMANDELIC ACID (VMA)-24 HRS URINE","amount":800.0},{"sl":"797","name":"VARICELLA ZOSTER IGG","amount":2000.0},{"sl":"798","name":"VARICELLA ZOSTER IGG (CSF)","amount":3300.0},{"sl":"799","name":"VARICELLA ZOSTER IGM","amount":2000.0},{"sl":"800","name":"VDRL TEST","amount":250.0},{"sl":"801","name":"VERY LARGE HP- 8 SLIDE","amount":3000.0},{"sl":"802","name":"VITAMIN A","amount":4400.0},{"sl":"803","name":"VITAMIN B1","amount":3500.0},{"sl":"804","name":"VITAMIN B12","amount":1000.0},{"sl":"805","name":"VITAMIN B2","amount":3500.0},{"sl":"806","name":"VITAMIN B6","amount":4400.0},{"sl":"807","name":"VITAMIN C","amount":3300.0},{"sl":"808","name":"VITAMIN D (25 HYDROXY)","amount":1000.0},{"sl":"809","name":"VITAMIN D3","amount":1000.0},{"sl":"810","name":"VITAMIN D3 (125 HYDROXY)","amount":3800.0},{"sl":"811","name":"VITAMIN E (TOCOPHEROL)","amount":1700.0},{"sl":"812","name":"VMA (24 HRS. URINE)","amount":800.0},{"sl":"813","name":"VWF","amount":10500.0},{"sl":"814","name":"WATER CULTURE","amount":700.0},{"sl":"815","name":"WELL FELIX TEST","amount":600.0},{"sl":"816","name":"WIDAL REACTION","amount":250.0},{"sl":"817","name":"ZINC","amount":1000.0}];
+
+const searchInput = document.getElementById('searchInput');
+const clearSearchBtn = document.getElementById('clearSearch');
+const resultsEl = document.getElementById('results');
+const billItemsEl = document.getElementById('billItems');
+const billEmptyEl = document.getElementById('billEmpty');
+const totalAmtEl = document.getElementById('totalAmt');
+const itemCountEl = document.getElementById('itemCount');
+const clearAllBtn = document.getElementById('clearAll');
+
+let bill = []; // {name, amount}
+let currentTotal = 0;
+
+function formatRs(n){
+  return 'Rs. ' + n.toLocaleString('en-IN');
+}
+
+function renderResults(){
+  const q = searchInput.value.trim().toUpperCase();
+  clearSearchBtn.style.display = q ? 'block' : 'none';
+  resultsEl.innerHTML = '';
+
+  if(!q){
+    resultsEl.innerHTML = '<div class="hint-row">Start typing to search 815 tests…</div>';
+    return;
+  }
+
+  const matches = TESTS.filter(t => t.name.includes(q)).slice(0, 40);
+
+  if(matches.length === 0){
+    resultsEl.innerHTML = '<div class="empty-row">No matching test found.</div>';
+    return;
+  }
+
+  matches.forEach(t => {
+    const row = document.createElement('div');
+    row.className = 'result-row';
+    row.innerHTML = `
+      <div class="result-name">${t.name}</div>
+      <div class="result-amt">${formatRs(t.amount)}</div>
+      <div class="result-add">+</div>
+    `;
+    row.addEventListener('click', () => addToBill(t));
+    resultsEl.appendChild(row);
+  });
+}
+
+function addToBill(t){
+  bill.push({name: t.name, amount: t.amount});
+  renderBill();
+  searchInput.value = '';
+  renderResults();
+  searchInput.focus();
+}
+
+function removeFromBill(idx){
+  bill.splice(idx, 1);
+  renderBill();
+}
+
+function renderBill(){
+  itemCountEl.textContent = bill.length + (bill.length === 1 ? ' item' : ' items');
+
+  if(bill.length === 0){
+    billItemsEl.innerHTML = '';
+    billItemsEl.appendChild(billEmptyEl);
+    currentTotal = 0;
+    totalAmtEl.textContent = formatRs(0);
+    return;
+  }
+
+  billItemsEl.innerHTML = '';
+  let total = 0;
+  bill.forEach((item, i) => {
+    total += item.amount;
+    const row = document.createElement('div');
+    row.className = 'bill-item';
+    row.innerHTML = `
+      <div class="bill-sl">${i + 1}.</div>
+      <div class="bill-name">${item.name}</div>
+      <div class="bill-amt">${formatRs(item.amount)}</div>
+      <button class="bill-remove" aria-label="Remove">✕</button>
+    `;
+    row.querySelector('.bill-remove').addEventListener('click', () => removeFromBill(i));
+    billItemsEl.appendChild(row);
+  });
+
+  currentTotal = total;
+  totalAmtEl.textContent = formatRs(total);
+}
+
+searchInput.addEventListener('input', renderResults);
+clearSearchBtn.addEventListener('click', () => {
+  searchInput.value = '';
+  renderResults();
+  searchInput.focus();
+});
+searchInput.addEventListener('keydown', (e) => {
+  if(e.key === 'Enter'){
+    const first = resultsEl.querySelector('.result-row');
+    if(first) first.click();
+  }
+});
+clearAllBtn.addEventListener('click', () => {
+  if(bill.length === 0) return;
+  if(confirm('Clear all items from the bill?')){
+    bill = [];
+    renderBill();
+  }
+});
+
+/* ---------- Live sync from Google Sheet ---------- */
+const SHEET_ID = '1Zve1CCoApww70d_OgwdIA101QKyooXWVa_shFKb-cFU';
+const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/export?format=csv&gid=0';
+const syncStatusEl = document.getElementById('syncStatus');
+const syncBtn = document.getElementById('syncBtn');
+
+function parseCSV(text){
+  const rows = [];
+  let row = [], field = '', inQuotes = false;
+  for(let i = 0; i < text.length; i++){
+    const c = text[i];
+    if(inQuotes){
+      if(c === '"'){
+        if(text[i+1] === '"'){ field += '"'; i++; }
+        else { inQuotes = false; }
+      } else {
+        field += c;
+      }
+    } else {
+      if(c === '"'){ inQuotes = true; }
+      else if(c === ','){ row.push(field); field = ''; }
+      else if(c === '\r'){ /* ignore */ }
+      else if(c === '\n'){ row.push(field); rows.push(row); row = []; field = ''; }
+      else { field += c; }
+    }
+  }
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  return rows;
+}
+
+function setSyncStatus(msg){
+  if(syncStatusEl) syncStatusEl.textContent = msg;
+}
+
+async function syncFromSheet(silent){
+  if(!silent) setSyncStatus('Syncing…');
+  try{
+    const res = await fetch(SHEET_CSV_URL, { cache: 'no-store' });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    const rows = parseCSV(text);
+    let startIdx = 0;
+    if(rows.length && /test\s*name/i.test(rows[0][1] || '')) startIdx = 1;
+    const newTests = [];
+    for(let i = startIdx; i < rows.length; i++){
+      const r = rows[i];
+      if(!r || r.length < 3) continue;
+      const sl = (r[0] || '').trim();
+      const name = (r[1] || '').trim();
+      const amtRaw = (r[2] || '').trim().replace(/,/g, '');
+      const amount = parseFloat(amtRaw);
+      if(!name || isNaN(amount)) continue;
+      newTests.push({ sl, name: name.toUpperCase(), amount });
+    }
+    if(newTests.length > 0){
+      TESTS = newTests;
+      renderResults();
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      setSyncStatus('Synced ✓ ' + TESTS.length + ' tests (' + hh + ':' + mm + ')');
+    } else {
+      setSyncStatus('Sync failed — sheet returned no rows');
+    }
+  } catch(err){
+    setSyncStatus('Offline — showing saved data');
+  }
+}
+
+if(syncBtn) syncBtn.addEventListener('click', () => syncFromSheet(false));
+
+renderResults();
+renderBill();
+syncFromSheet(true);
+</script>
+</body>
+</html>
