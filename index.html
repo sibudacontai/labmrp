@@ -124,9 +124,18 @@
 
   @media print{
     @page{ size: A5 landscape; margin: 10mm; }
-    body *{visibility:hidden;}
-    #printArea, #printArea *{visibility:visible;}
-    #printArea{position:absolute;top:0;left:0;width:100%;}
+    html, body{ height: auto !important; margin:0; padding:0; }
+    #app, .total-bar{ display:none !important; }
+    #printArea{
+      display:block !important;
+      position: static !important;
+      left:auto !important; top:auto !important;
+      width:100% !important; max-width:100%;
+      padding:0; margin:0;
+      page-break-after: avoid;
+      page-break-inside: avoid;
+    }
+    #printArea *{ page-break-inside: avoid; }
   }
 </style>
 </head>
