@@ -67,18 +67,20 @@
   .bill-empty{text-align:center;color:var(--muted-2);padding:24px 10px;font-size:13.5px;}
 
   .bill-head-row{display:flex;gap:8px;padding:10px 0 6px;font-size:10.5px;color:var(--muted);font-weight:bold;text-transform:uppercase;letter-spacing:.02em;border-bottom:1px solid var(--line);}
+  .bill-head-row .col-sl{width:24px;}
   .bill-head-row .col-name{flex:1;}
-  .bill-head-row .col-qty{width:52px;text-align:center;}
-  .bill-head-row .col-total{width:74px;text-align:right;}
+  .bill-head-row .col-price{width:60px;text-align:right;}
+  .bill-head-row .col-total{width:70px;text-align:right;}
   .bill-head-row .col-x{width:20px;}
 
   .bill-row{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--line);}
   .bill-row:last-child{border-bottom:none;}
+  .b-sl{width:24px;font-size:12.5px;color:var(--muted);text-align:center;flex-shrink:0;}
   .b-info{flex:1;min-width:0;}
   .b-name{font-size:13.5px;font-weight:bold;}
   .b-price{font-size:11.5px;color:var(--muted);}
-  .b-qty{width:52px;border:2px solid #d3e6de;border-radius:8px;padding:5px;text-align:center;font-size:14px;}
-  .b-linetotal{width:74px;text-align:right;font-size:13.5px;font-weight:bold;}
+  .b-price-col{width:60px;text-align:right;font-size:12.5px;color:var(--muted);flex-shrink:0;}
+  .b-linetotal{width:70px;text-align:right;font-size:13.5px;font-weight:bold;flex-shrink:0;}
   .b-remove{border:none;background:none;color:var(--stamp);font-size:16px;cursor:pointer;padding:0 2px;width:20px;flex-shrink:0;}
 
   /* Totals bar */
@@ -197,8 +199,9 @@
     <div class="bill-title"><span>BILL</span><span class="count" id="itemCount">0 items</span></div>
     <div class="bill-card">
       <div class="bill-head-row" id="billHeadRow" style="display:none;">
-        <span class="col-name">Test</span>
-        <span class="col-qty">Qty</span>
+        <span class="col-sl">SL</span>
+        <span class="col-name">Test Name</span>
+        <span class="col-price">Price</span>
         <span class="col-total">Amount</span>
         <span class="col-x"></span>
       </div>
@@ -261,7 +264,7 @@
     <div><b>Reffer Doctor:</b> <span id="pReferDoctor"></span></div>
   </div>
   <table class="p-table">
-    <thead><tr><th>Test</th><th class="num">Qty</th><th class="num">Price</th><th class="num">Amount</th></tr></thead>
+    <thead><tr><th>SL No.</th><th>Test Name</th><th class="num">Price</th><th class="num">Amount</th></tr></thead>
     <tbody id="pTableBody"></tbody>
   </table>
   <div class="p-totals">
@@ -349,12 +352,7 @@ function renderResults(){
 }
 
 function addToBill(t){
-  const existing = bill.find(b => b.name === t.name);
-  if(existing){
-    existing.qty += 1;
-  } else {
-    bill.push({ name: t.name, price: t.amount, qty: 1 });
-  }
+  bill.push({ name: t.name, price: t.amount });
   renderBill();
   searchInput.value = '';
   renderResults();
@@ -385,25 +383,18 @@ function renderBill(){
 
   let total = 0;
   bill.forEach((b, idx) => {
-    const lineTotal = b.qty * b.price;
-    total += lineTotal;
+    total += b.price;
     const row = document.createElement('div');
     row.className = 'bill-row';
     row.innerHTML = `
+      <div class="b-sl">${idx + 1}</div>
       <div class="b-info">
         <div class="b-name">${b.name}</div>
-        <div class="b-price">Rs. ${b.price} / test</div>
       </div>
-      <input type="number" class="b-qty" min="1" value="${b.qty}" data-idx="${idx}" />
-      <div class="b-linetotal">Rs. ${lineTotal}</div>
+      <div class="b-price-col">Rs. ${b.price}</div>
+      <div class="b-linetotal">Rs. ${b.price}</div>
       <button class="b-remove" data-idx="${idx}">✕</button>
     `;
-    row.querySelector('.b-qty').addEventListener('input', (e) => {
-      let v = parseFloat(e.target.value);
-      if(isNaN(v) || v < 1) v = 1;
-      bill[idx].qty = v;
-      renderBill();
-    });
     row.querySelector('.b-remove').addEventListener('click', () => {
       bill.splice(idx, 1);
       renderBill();
@@ -475,9 +466,9 @@ function preparePrintArea(){
 
   const tbody = document.getElementById('pTableBody');
   tbody.innerHTML = '';
-  bill.forEach(b => {
+  bill.forEach((b, idx) => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${b.name}</td><td class="num">${b.qty}</td><td class="num">${b.price}</td><td class="num">${b.qty * b.price}</td>`;
+    tr.innerHTML = `<td>${idx + 1}</td><td>${b.name}</td><td class="num">${b.price}</td><td class="num">${b.price}</td>`;
     tbody.appendChild(tr);
   });
 
