@@ -125,7 +125,7 @@
   .p-footer{text-align:center;font-size:11px;color:#555;margin-top:14px;}
 
   @media print{
-    @page{ size: A5 landscape; margin: 10mm; }
+    @page{ size: 210mm 148mm; margin: 10mm; }
     html, body{ height: auto !important; margin:0; padding:0; }
     #app, .total-bar{ display:none !important; }
     #printArea{
@@ -219,7 +219,7 @@
         <span class="combo-value" id="totalAmt">Rs. 0</span>
       </div>
       <div class="combo-col">
-        <span class="combo-label">Discount</span>
+        <span class="combo-label">Discount <span id="discountUnitLabel">(Rs.)</span></span>
         <span class="combo-value discount-inputs">
           <input type="number" id="discountInput" min="0" value="0" />
           <select id="discountType">
@@ -422,10 +422,15 @@ function computeDiscountAmount(){
 }
 
 function updateNetAmount(){
+  const unitLabel = document.getElementById('discountUnitLabel');
+  if(unitLabel) unitLabel.textContent = discountTypeEl.value === 'percent' ? '(%)' : '(Rs.)';
   const discAmt = computeDiscountAmount();
   if(discountTypeEl.value === 'percent'){
+    let raw = parseFloat(discountInput.value);
+    if(isNaN(raw) || raw < 0) raw = 0;
+    if(raw > 100) raw = 100;
     discountAmtRow.style.display = 'flex';
-    discountAmtDisplay.textContent = formatRs(discAmt);
+    discountAmtDisplay.textContent = formatRs(discAmt) + ' (' + raw + '%)';
   } else {
     discountAmtRow.style.display = 'none';
   }
@@ -476,7 +481,14 @@ function preparePrintArea(){
   let net = currentTotal - discAmt;
   if(net < 0) net = 0;
   document.getElementById('pTotal').textContent = formatRs(currentTotal);
-  document.getElementById('pDiscount').textContent = formatRs(discAmt);
+  let discLabel = formatRs(discAmt);
+  if(discountTypeEl.value === 'percent'){
+    let raw = parseFloat(discountInput.value);
+    if(isNaN(raw) || raw < 0) raw = 0;
+    if(raw > 100) raw = 100;
+    discLabel += ' (' + raw + '%)';
+  }
+  document.getElementById('pDiscount').textContent = discLabel;
   document.getElementById('pNet').textContent = formatRs(net);
 }
 
